@@ -1,0 +1,1 @@
+yolo classify train data=./datasets/person_cls model=./yolo11n-cls.yaml pretrained=yolo11n-cls.pt epochs=100 imgsz=64
