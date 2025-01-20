@@ -8,7 +8,7 @@ offset = 20
 detect_model = YOLO("./weights/yolo11n.pt")
 # 加载分类模型
 # model = YOLO("yolo11n-cls.pt")  # load an official model
-class_model = YOLO("./runs/classify/train/weights/best.pt")
+class_model = YOLO("./runs/train_play_sleep_normal_unknown4+/weights/best.pt")
 
 video_path = 0
 # video_path = "rtsp://admin:HikFIATCT@192.168.50.11:554/Streaming/Channels/101" # 外走廊高清  1920 1080

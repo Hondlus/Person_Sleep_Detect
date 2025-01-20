@@ -5,12 +5,12 @@ import os
 
 # 裁剪图片预留的空间填充
 offset = 20
-img_path = "./test_img/tmp/"
+img_path = "./test_img/"
 # 加载检测模型
 detect_model = YOLO("./weights/yolo11n.pt")
 # 加载分类模型
 # model = YOLO("yolo11n-cls.pt")  # load an official model
-class_model = YOLO("./runs/classify/train/weights/best.pt")
+class_model = YOLO("./best.pt")
 
 for img_name in os.listdir(img_path):
     img = cv2.imread(img_path + img_name)
