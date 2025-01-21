@@ -5,7 +5,8 @@ import os
 
 # 裁剪图片预留的空间填充
 offset = 20
-img_path = "./test_img/"
+# img_path = "./test_img/"
+img_path = "./download_img/单人职场员工玩手机/"
 # 加载检测模型
 detect_model = YOLO("./weights/yolo11n.pt")
 # 加载分类模型

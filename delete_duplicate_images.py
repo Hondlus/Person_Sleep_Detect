@@ -26,4 +26,4 @@ def remove_duplicate_images(directory):
 
 if __name__ == '__main__':
 
-    remove_duplicate_images("C:/Users/DXW/Desktop/Person_Sleep_Detect/download_img/单人职场员工玩手机")
+    remove_duplicate_images("C:/Users/DXW/Desktop/Person_Sleep_Detect/download_img/单人职场员工睡觉")

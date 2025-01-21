@@ -5,10 +5,11 @@ import cv2
 # 裁剪图片预留的空间填充
 offset = 20
 # 加载检测模型
-detect_model = YOLO("./weights/yolo11x.pt")
+detect_model = YOLO("./weights/yolo11n.pt")
 # 加载分类模型
 # model = YOLO("yolo11n-cls.pt")  # load an official model
-class_model = YOLO("./runs/classify/train_play_sleep_normal_unknown4+/weights/best.pt")
+# class_model = YOLO("./runs/train_play_sleep_normal_unknown4+/weights/best.pt")
+class_model = YOLO("./best.pt")
 
 video_path = './test_img/test_video.mp4'
 output_video_path = './test_img/result.mp4'

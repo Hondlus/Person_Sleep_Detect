@@ -8,7 +8,8 @@ offset = 20
 detect_model = YOLO("./weights/yolo11n.pt")
 # 加载分类模型
 # model = YOLO("yolo11n-cls.pt")  # load an official model
-class_model = YOLO("./runs/train_play_sleep_normal_unknown4+/weights/best.pt")
+# class_model = YOLO("./runs/train_play_sleep_normal_unknown4+/weights/best.pt")
+class_model = YOLO("./best.pt")
 
 video_path = 0
 # video_path = "rtsp://admin:HikFIATCT@192.168.50.11:554/Streaming/Channels/101" # 外走廊高清  1920 1080
@@ -16,7 +17,7 @@ video_path = 0
 # video_path = "rtsp://admin:HikNJQXFP@192.168.50.10:554/Streaming/Channels/102" # 屋内大屏摄像头
 # video_path = "rtsp://admin:Dxw202409@192.168.50.20:554/stream2"  # 15fps 640 480
 
-cam = cv2.VideoCapture(video_path)
+cam = cv2.VideoCapture(video_path, cv2.CAP_DSHOW)
 while cam.isOpened():
     ret, frame = cam.read()
     img_h, img_w, _ = frame.shape
