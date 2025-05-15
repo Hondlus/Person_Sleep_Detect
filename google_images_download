@@ -1,0 +1,159 @@
+import requests
+from bs4 import BeautifulSoup
+import os
+import time
+from urllib.parse import quote
+import logging
+import json
+import re
+
+
+class GoogleImageCrawler:
+    def __init__(self):
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+        }
+        self.setup_logging()
+
+    def setup_logging(self):
+        """设置日志配置"""
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+        self.logger = logging.getLogger(__name__)
+
+    def create_folder(self, folder_name):
+        """创建文件夹，返回完整路径"""
+        try:
+            if not os.path.exists(folder_name):
+                os.makedirs(folder_name)
+                self.logger.info(f"创建文件夹成功: {folder_name}")
+            return folder_name
+        except Exception as e:
+            self.logger.error(f"创建文件夹失败: {str(e)}")
+            raise
+
+    def download_image(self, url, folder_name, filename):
+        """下载单张图片"""
+        try:
+            response = requests.get(url, headers=self.headers, timeout=10)
+            response.raise_for_status()  # 检查响应状态
+
+            # 检查内容类型是否为图片
+            content_type = response.headers.get('Content-Type', '')
+            if not content_type.startswith('image/'):
+                self.logger.warning(f"非图片类型: {content_type}, URL: {url}")
+                return False
+
+            file_path = os.path.join(folder_name, filename)
+            with open(file_path, 'wb') as f:
+                f.write(response.content)
+
+            # 检查文件大小
+            file_size = os.path.getsize(file_path)
+            if file_size < 1024:  # 小于1KB可能是无效图片
+                os.remove(file_path)
+                self.logger.warning(f"图片太小，可能无效: {file_size} bytes")
+                return False
+
+            self.logger.info(f"成功下载图片: {filename} ({file_size / 1024:.1f}KB)")
+            return True
+
+        except requests.exceptions.Timeout:
+            self.logger.error(f"下载超时: {url}")
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"下载请求错误: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"下载其他错误: {str(e)}")
+        return False
+
+    def extract_image_urls(self, html_content):
+        """从HTML内容中提取图片URL"""
+        try:
+            # 使用正则表达式查找图片URL
+            pattern = r'https?://[^"\']+(?:jpg|jpeg|png|gif)'
+            urls = re.findall(pattern, html_content)
+
+            # 尝试从JSON数据中提取
+            json_matches = re.findall(r'AF_initDataCallback\((.*?)\);', html_content)
+            for match in json_matches:
+                try:
+                    data = json.loads(match.strip()[:-1])
+                    json_str = json.dumps(data)
+                    urls.extend(re.findall(pattern, json_str))
+                except:
+                    continue
+
+            return list(set(urls))  # 去重
+        except Exception as e:
+            self.logger.error(f"提取图片URL时出错: {str(e)}")
+            return []
+
+    def search_images(self, keyword, num_images=10):
+        """搜索并下载图片"""
+        try:
+            # 创建保存图片的文件夹
+            folder_name = f"google_images_{keyword}"
+            self.create_folder(folder_name)
+
+            # 构造搜索URL
+            search_url = f"https://www.google.com/search?q={quote(keyword)}&tbm=isch"
+            self.logger.info(f"开始搜索: {search_url}")
+
+            # 获取搜索页面
+            response = requests.get(search_url, headers=self.headers, timeout=15)
+            response.raise_for_status()
+
+            # 提取图片URL
+            image_urls = self.extract_image_urls(response.text)
+            if not image_urls:
+                self.logger.error("未找到任何图片URL")
+                return
+
+            self.logger.info(f"找到 {len(image_urls)} 个图片URL")
+
+            # 下载图片
+            success_count = 0
+            for idx, img_url in enumerate(image_urls):
+                if success_count >= num_images:
+                    break
+
+                filename = f"{keyword}_{success_count + 1}.jpg"
+                if self.download_image(img_url, folder_name, filename):
+                    success_count += 1
+                    time.sleep(1)  # 添加延时
+
+            self.logger.info(f"下载完成! 成功下载 {success_count} 张图片")
+            if success_count == 0:
+                self.logger.warning("没有成功下载任何图片，可能原因：")
+                self.logger.warning("1. 网络连接问题")
+                self.logger.warning("2. Google反爬虫机制")
+                self.logger.warning("3. 图片URL无效或已失效")
+                self.logger.warning("4. 请求被拒绝或超时")
+
+        except requests.exceptions.ConnectionError:
+            self.logger.error("网络连接错误，请检查网络连接")
+        except requests.exceptions.Timeout:
+            self.logger.error("请求超时，请稍后重试")
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"请求错误: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"未预期的错误: {str(e)}")
+
+
+# 使用示例
+if __name__ == "__main__":
+    try:
+        crawler = GoogleImageCrawler()
+        keyword = "墙体裂缝"  # 搜索关键词
+        num_images = 100  # 要下载的图片数量
+
+        crawler.search_images(keyword, num_images)
+    except KeyboardInterrupt:
+        print("\n程序被用户中断")
+    except Exception as e:
+        print(f"程序执行出错: {str(e)}")
