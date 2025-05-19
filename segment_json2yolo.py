@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import cv2
+from Crypto.SelfTest.Cipher.test_CFB import file_name
 
 
 def eiseg_json_to_yolo(json_path, output_dir, img_width, img_height):
@@ -22,26 +23,27 @@ def eiseg_json_to_yolo(json_path, output_dir, img_width, img_height):
     with open(json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     # 获取文件名（不带扩展名）
-    file_name = Path(json_path).stem
+    # file_name = Path(json_path).stem
 
     # 准备YOLO格式内容
     yolo_lines = []
 
-    # 遍历每个标注对象
-    label = data[0]['labelIdx']
-    points = data[0]['points']
-    # print(points)
-    # 将多边形点转换为YOLO格式
-    normalized_points = []
-    for x, y in points:
-        # 归一化坐标
-        nx = x / img_width
-        ny = y / img_height
-        normalized_points.extend([nx, ny])
+    for i in range(len(data)):
+        # 遍历每个标注对象
+        label = data[i]['labelIdx']
+        points = data[i]['points']
+        # print(points)
+        # 将多边形点转换为YOLO格式
+        normalized_points = []
+        for x, y in points:
+            # 归一化坐标
+            nx = x / img_width
+            ny = y / img_height
+            normalized_points.extend([nx, ny])
 
-    # 格式: class_id x1 y1 x2 y2 ... xn yn
-    yolo_line = f"{label - 1} " + " ".join([f"{p:.6f}" for p in normalized_points])
-    yolo_lines.append(yolo_line)
+        # 格式: class_id x1 y1 x2 y2 ... xn yn
+        yolo_line = f"{label - 1} " + " ".join([f"{p:.6f}" for p in normalized_points])
+        yolo_lines.append(yolo_line)
 
     # 写入YOLO TXT文件
     output_path = os.path.join(output_dir, f"{file_name}.txt")
@@ -54,16 +56,16 @@ def eiseg_json_to_yolo(json_path, output_dir, img_width, img_height):
 # 示例用法
 if __name__ == "__main__":
     # 设置参数
-    image_dir = "C:/Users/DXW/Desktop/yolov12/datasets/owndata/images/train/"  # 替换为你的图像文件夹路径
-    json_file = "C:/Users/DXW/Downloads/eiseg_model/label/"  # 替换为你的JSON文件路径
+    image_dir = "C:/Users/dxw-user/Desktop/yolov12/datasets/owndata/images/train/"  # 替换为你的图像文件夹路径
+    json_file = "C:/Users/dxw-user/Desktop/labelimg_v1.8.1/eiseg_model/label/"  # 替换为你的JSON文件路径
     output_directory = "./yolo_labels"  # 输出目录
 
-    for i in os.listdir(json_file):
-        # print(i)
+    for i in os.listdir(image_dir):
         file_name = i.split('.')[0]
-        img = cv2.imread(image_dir + file_name + '.jpg')
+        kuozhanming = i.split('.')[1]
+        img = cv2.imread(image_dir + file_name + '.' + kuozhanming)
         img_width, img_height = img.shape[1], img.shape[0]
         # print(file_name, img_width, img_height)
-        eiseg_json_to_yolo(json_file + i, output_directory, img_width, img_height)
+        eiseg_json_to_yolo(json_file + file_name + '.json', output_directory, img_width, img_height)
     # 执行转换
     # eiseg_json_to_yolo(json_file, output_directory, image_width, image_height)
