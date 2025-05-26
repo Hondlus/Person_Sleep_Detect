@@ -1,0 +1,29 @@
+import shutil
+import os
+
+
+def move_file():
+    for file_name in os.listdir(json_folder):
+        name = file_name.split('.')[0]
+        json_list.append(name)
+
+    for img_name in os.listdir(img_path):
+        if img_name.split('.')[0] in json_list:
+            shutil.move(img_path + img_name, img_folder)
+            print(f"文件已移动到 {img_folder}")
+        else:
+            print(f"文件 {img_name} 不存在")
+
+    for img_name2 in os.listdir(img_folder):
+        name2 = img_name2.split('.')[0]
+        img_list.append(name2)
+    diff = list(set(json_list) - set(img_list))
+    print('差异文件名: ', diff)
+
+if __name__ == '__main__':
+    json_folder = 'C:/Users/dxw-user/Desktop/baidu_bing_google/labelme/'
+    img_path = 'C:/Users/dxw-user/Desktop/baidu_bing_google/'
+    img_folder = 'C:/Users/dxw-user/Desktop/baidu_bing_google/img/'
+    json_list = []
+    img_list = []
+    move_file()
