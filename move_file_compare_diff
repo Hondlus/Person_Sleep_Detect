@@ -1,5 +1,6 @@
 import shutil
 import os
+import random
 
 
 def move_file():
@@ -20,10 +21,60 @@ def move_file():
     diff = list(set(json_list) - set(img_list))
     print('差异文件名: ', diff)
 
+
+def split_dataset():
+    # 将数据集分为训练集和测试集
+    train_ratio = 0.7
+    val_ratio = 0.2
+    test_ratio = 0.1
+    dataset_path = 'C:/Users/dxw-user/Desktop/baidu_bing_google/img/'
+    txt_path = 'C:/Users/dxw-user/Desktop/baidu_bing_google/txt/'
+
+    train_folder = 'C:/Users/dxw-user/Desktop/yolov12/数据集整理/newdata/images/train/'
+    train_txt_folder = 'C:/Users/dxw-user/Desktop/yolov12/数据集整理/newdata/labels/train/'
+    val_folder = 'C:/Users/dxw-user/Desktop/yolov12/数据集整理/newdata/images/val/'
+    val_txt_folder = 'C:/Users/dxw-user/Desktop/yolov12/数据集整理/newdata/labels/val/'
+    test_folder = 'C:/Users/dxw-user/Desktop/yolov12/数据集整理/newdata/images/test/'
+    test_txt_folder = 'C:/Users/dxw-user/Desktop/yolov12/数据集整理/newdata/labels/test/'
+
+    for img_name in os.listdir(dataset_path):
+        name_list.append(img_name)
+        random.shuffle(name_list)
+
+    total_size = len(name_list)
+    train_size = int(total_size * train_ratio)
+    val_size = int(total_size * val_ratio)
+    test_size = total_size - train_size - val_size
+    print(f"Total size: {total_size}, Train size: {train_size}, Val size: {val_size}, Test size: {test_size}")
+
+    # 划分数据集
+    train_files = name_list[:train_size]
+    for file in train_files:
+        one_name = file.split('.')[0]
+        shutil.copy(dataset_path + file, train_folder)
+        shutil.copy(txt_path + one_name + '.txt', train_txt_folder)
+
+    val_files = name_list[train_size:train_size + val_size]
+    for file in val_files:
+        one_name = file.split('.')[0]
+        shutil.copy(dataset_path + file, val_folder)
+        shutil.copy(txt_path + one_name + '.txt', val_txt_folder)
+
+    test_files = name_list[train_size + val_size:]
+    for file in test_files:
+        one_name = file.split('.')[0]
+        shutil.copy(dataset_path + file, test_folder)
+        shutil.copy(txt_path + one_name + '.txt', test_txt_folder)
+
+    print("数据集划分完成")
+
 if __name__ == '__main__':
     json_folder = 'C:/Users/dxw-user/Desktop/baidu_bing_google/labelme/'
     img_path = 'C:/Users/dxw-user/Desktop/baidu_bing_google/'
     img_folder = 'C:/Users/dxw-user/Desktop/baidu_bing_google/img/'
     json_list = []
     img_list = []
+    name_list = []
+
     move_file()
+    split_dataset()
