@@ -1,21 +1,37 @@
+import os
 from ultralytics import YOLO
-import cv2
-# # Load a model
-# model = YOLO("yolo11n-seg.pt")  # load an official model
-#
-# # Export the model
-# model.export(format="onnx")
 
-onnx_model = YOLO("yolo11n-seg.onnx")
 
-# Run inference
-results = onnx_model.predict(source='./assets/bus.jpg', save=False, show=False)
+# model = YOLO("./weights/yolo11n-seg.pt")
 
-if results[0].masks is not None:
-    masks = results[0].masks.xy
+# model.export(format="onnx")onnx
 
-for i in results:
-    res = i.plot()  # 提取推理后的图像
-    cv2.imshow("results", res)  # 显示结果
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+all_detections = []
+# 加载模型
+model = YOLO('weights/yolo11n-seg.onnx')  # 使用ONNX模型
+
+input_dir = '/Users/hongliang/Desktop/yolov12/datasets/crack-seg/test/images'
+output_dir = './output'
+
+os.makedirs(output_dir, exist_ok=True)
+
+# 进行预测
+results = model.predict(
+    source=input_dir,
+    task='segment',
+    imgsz=640,
+    # save=True,
+    # project=output_dir,
+    # exist_ok=True,
+    # name='exp',
+)
+
+for result in results:
+    if result.boxes is not None:
+        boxes_array = result.boxes.xyxy.cpu().numpy()
+        boxes_list = boxes_array.tolist()
+        print('box: ', boxes_list)
+
+    if result.masks is not None:
+        masks_list = result.masks.xy
+        print('mask: ', masks_list)
