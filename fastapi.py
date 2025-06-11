@@ -5,15 +5,15 @@ from ultralytics import YOLO
 app = FastAPI()
 
 # 加载模型（可以在启动时加载一次）
-model = YOLO('weights/yolo11n-seg.onnx')  # 使用ONNX模型
+model = YOLO('weights/best.onnx', task='segment')  # 使用ONNX模型
 
 
 @app.post("/crack_segment")
 async def crack_segment(filename: str,
-                           input_dir: str = "/Users/hongliang/Desktop/yolov12/input",
-                           output_dir: str = "/Users/hongliang/Desktop/yolov12/output"):
+                        input_dir: str = "C:/Users/dxw-user/Desktop/yolov12/input",
+                        output_dir: str = "C:/Users/dxw-user/Desktop/yolov12/output"):
     # 拼接文件路径
-    input_file  = os.path.join(input_dir, filename)
+    input_file = os.path.join(input_dir, filename)
     output_file = os.path.join(output_dir, filename)
 
     # 检查文件是否存在
@@ -36,10 +36,10 @@ async def crack_segment(filename: str,
 
             if result.boxes is not None:
                 boxes_array = result.boxes.xyxy.cpu().numpy()
-                detection['boxes'] = boxes_array.tolist()
+                detection['boxes'] = boxes_array.astype(int).tolist()
 
             if result.masks is not None:
-                detection['masks'] = [mask.tolist() for mask in result.masks.xy]
+                detection['masks'] = [mask.astype(int).tolist() for mask in result.masks.xy]
 
         return detection
 
@@ -51,9 +51,10 @@ async def crack_segment(filename: str,
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
 
+
 @app.post("/crack_segment_url")
 async def crack_segment_url(url_img: str,
-                           output_dir: str = "/Users/hongliang/Desktop/yolov12/output"):
+                            output_dir: str = "C:/Users/dxw-user/Desktop/yolov12/output"):
     # 拼接文件路径
     url_name = os.path.basename(url_img)
     output_file = os.path.join(output_dir, url_name)
@@ -74,10 +75,10 @@ async def crack_segment_url(url_img: str,
 
             if result.boxes is not None:
                 boxes_array = result.boxes.xyxy.cpu().numpy()
-                detection['boxes'] = boxes_array.tolist()
+                detection['boxes'] = boxes_array.astype(int).tolist()
 
             if result.masks is not None:
-                detection['masks'] = [mask.tolist() for mask in result.masks.xy]
+                detection['masks'] = [mask.astype(int).tolist() for mask in result.masks.xy]
 
         return detection
 
@@ -89,7 +90,8 @@ async def crack_segment_url(url_img: str,
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
 
+
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8088)
+    uvicorn.run(app, host="0.0.0.0", port=8086)
