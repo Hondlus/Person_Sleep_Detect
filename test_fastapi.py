@@ -1,40 +1,39 @@
 import requests
-import time
-
-def test_crack_segment():
-    # 设置请求的 URL 和参数
-    url = "http://127.0.0.1:8088/crack_segment"
-    input_dir = r"/Users/hongliang/Desktop/yolov12/input"  # 替换为实际的文件夹路径
-    output_dir = r"/Users/hongliang/Desktop/yolov12/output"
-    filename = r"123.jpg"  # 替换为实际的文件名
-
-    # 发送 POST 请求
-    start_time = time.time()
-    response = requests.post(url, params={"input_dir": input_dir, "output_dir": output_dir, "filename": filename})
-    end_time = time.time()
-    print(f"请求时间: {end_time - start_time}秒")
-
-    # 打印响应状态码和内容
-    print(f"Status code: {response.status_code}")
-    print(f"Response: {response.json()}")
+import cv2
+import numpy as np
 
 
-def test_crack_segment_url():
-    # 设置请求的 URL 和参数
-    url = "http://127.0.0.1:8088/crack_segment_url"
-    url_img = r"https://copyright.bdstatic.com/vcg/creative/7ecbfecab42ebbe694404a3f8af4fdd9.jpg"  # 替换为实际的文件夹路径
-    output_dir = r"/Users/hongliang/Desktop/yolov12/output"
+def test_api_with_image_file(image_path):
+    """
+    测试API接口，使用本地图片文件
+    :param image_path: 图片文件路径
+    """
+    url = "http://localhost:8086/predict"
 
-    # 发送 POST 请求
-    start_time = time.time()
-    response = requests.post(url, params={"url_img": url_img, "output_dir": output_dir})
-    end_time = time.time()
-    print(f"请求时间: {end_time - start_time}秒")
+    try:
+        # 读取变成二进制图像，并发送到API
+        with open(image_path, 'rb') as f:
+            img_bytes = f.read()
+            response = requests.post(url, data=img_bytes)
+            print(response.json())
 
-    # 打印响应状态码和内容
-    print(f"Status code: {response.status_code}")
-    print(f"Response: {response.json()}")
+        if response.status_code == 200:
+            # 保存返回的图片
+            output_path = "output_api_result.jpg"
+            with open(output_path, 'wb') as f:
+                f.write(bytes(response.json()["img_bytes"]))
+            print(f"API测试成功，结果已保存到 {output_path}")
 
-# 运行测试函数
-# test_crack_segment()
-test_crack_segment_url()
+            # 显示图片
+            img = cv2.imdecode(np.frombuffer(bytes(response.json()["img_bytes"]), np.uint8), cv2.IMREAD_COLOR)
+            cv2.imshow("API Result", img)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        else:
+            print(f"API请求失败，状态码: {response.status_code}, 错误信息: {response.text}")
+    except Exception as e:
+        print(f"测试过程中发生错误: {str(e)}")
+
+
+# 使用示例
+test_api_with_image_file("./input/1.jpg")  # 替换为你的测试图片路径
