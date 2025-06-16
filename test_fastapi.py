@@ -36,4 +36,4 @@ def test_api_with_image_file(image_path):
 
 
 # 使用示例
-test_api_with_image_file("./input/1.jpg")  # 替换为你的测试图片路径
+test_api_with_image_file("./input/2.jpg")  # 替换为你的测试图片路径
